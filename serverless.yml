@@ -1,0 +1,62 @@
+service: company-apig
+provider:
+  name: aws
+  stage: dev
+  runtime: python2.7
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    resourceRoutes: true
+
+resources:
+  Resources:
+
+    # Parent APIG RestApi
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: company-apig
+        Description: 'The main entry point of the APIG'
+
+    # Resource /endpoint
+    EndpointResource:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        ParentId:
+          Fn::GetAtt:
+            - ApiGatewayRestApi
+            - RootResourceId
+        PathPart: 'endpoint'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+
+    # Resource /endpoint/{proxy+}
+    EndpointProxyPath:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        ParentId:
+          Ref: EndpointResource
+        PathPart: '{proxy+}'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+
+    # Method ANY /endpoint/{proxy+}
+    EndpointProxyAnyMethod:
+      Type: AWS::ApiGateway::Method
+      Properties:
+        AuthorizationType: NONE
+        HttpMethod: ANY
+        Integration:
+          IntegrationHttpMethod: ANY
+          Type: HTTP_PROXY
+          Uri: 'http://endpoint.company.cool/{proxy}'
+          PassthroughBehavior: WHEN_NO_MATCH
+        MethodResponses:
+          - StatusCode: 200
+        ResourceId:
+          Ref: EndpointProxyPath
+        RestApiId:
+          Ref: ApiGatewayRestApi

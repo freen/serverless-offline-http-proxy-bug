@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "start": "./node_modules/serverless/bin/serverless offline"
+  },
+  "dependencies": {
+    "serverless": "^1.38.0"
+  },
+  "devDependencies": {
+    "serverless-offline": "^4.9.0"
+  }
+}
